@@ -41,4 +41,54 @@ userRouter.post('/login',passport.authenticate('local',{session:false}),(req,res
     }
 });
 
+userRouter.get('/logout',passport.authenticate('jwt',{session:false}),(req,res)=>{
+    res.clearCookie('access_token');
+    res.json({user:{username:"", role : ""},success:true});
+});
+
+userRouter.post('/todo',passport.authenticate('jwt',{session:false}),(req,res)=>{
+    const todo=new Todo(req.body);
+    todo.save(err=>{
+        if(err)
+            res.status(500).json({message: {msgBody:"Error has occured" ,msgError :true}});
+        else{
+            req.user.todos.push(todo);
+            req.user.save(err=>{
+                if(err)
+                    res.status(500).json({message:{msgBody:"Error has occured",msgError:true}});
+                else
+                    res.status(200).json({message:{msgBody:"Successfuly created Todo", msgError:false}})    
+            });
+        }    
+    })
+});
+
+userRouter.get('/todos',passport.authenticate('jwt',{session:false}),(req,res)=>{
+    User.findById({_id:req.user._id}).populate('todos').exec((err,document)=>{
+        if(err)
+            res.status(500).json({message:{msgBody:"Error has occured",msgError}});
+        else{
+            res.status(200).json({todos:document.todos,authenticated:true});
+        }    
+    });
+});
+
+userRouter.get('/admin',passport.authenticate('jwt',{session:false}),(req,res)=>{
+    if(req.user.role === "admin"){
+        res.status(200).json({message:{msgBody:"You are an Admin",msgError:false}});
+
+    }
+    else
+        res.status(403).json({message:{msgBody:"You are not an Admin, go away", msgError:true}});
+    
+});
+// userRouter.get('/authenticated',passport.authenticate('jwt',{session : false}),(req,res)=>{
+//     const {username,role} = req.user;
+//     res.status(200).json({isAuthenticated : true, user : {username,role}});
+// });
+
+userRouter.get('/authenticated',passport.authenticate('jwt',{session : false}),(req,res)=>{
+    const {username,role}=req.user;
+    res.status(200).json({isAuthenticated : true, user: {username,role}});
+});
 module.exports = userRouter;
