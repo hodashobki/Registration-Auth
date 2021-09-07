@@ -14,11 +14,6 @@ function App() {
     <Router>
     <Navbar/>
     <Route exact path="/" component={Home}/>
-    {/* <Route path="/Login" component={Login}/>
-    <Route path="/Register" component={Register}/> */}
-  
-    
-    
     <UnPrivateRoute path="/login" component={Login}/>
     <UnPrivateRoute path="/register" component={Register}/>
     <PrivateRoute path="/todos" roles={["user","admin"]} component={Todos}/>
